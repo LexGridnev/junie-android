@@ -1,83 +1,38 @@
-# 📱 JetBrains Junie for Android
+# Junie Android: The Ultimate AI Agent for Termux
 
-[![GitHub License](https://img.shields.io/github/license/LexGridnev/junie-android)](LICENSE)
-[![Termux Compatibility](https://img.shields.io/badge/Termux-aarch64-green)](https://termux.dev/)
+# Junie CLI for Android/Termux
 
-An optimized, professional installer for the **JetBrains Junie CLI** AI agent on Android via Termux. This project enables a full-featured AI coding agent to run natively on your mobile device with minimal overhead and maximum performance.
+This guide focuses on running Junie CLI natively on Android via Termux.
 
----
+## Installation & Patching
 
-## 🏗️ Technical Architecture: The "JAR Method"
+To run Junie CLI on Termux, you must patch the JAR to remove incompatible native libraries.
 
-Official JetBrains binaries for Linux/aarch64 are linked against `glibc`, which is incompatible with Android's `Bionic libc`. While most solutions rely on heavy `proot` containers (e.g., Ubuntu), this installer uses the **JAR Method**:
+### The 'zip -d' Patch
+Termux uses Bionic libc, which is incompatible with the glibc-linked native libraries bundled in the Junie JAR. Run the following command to remove them and force Junie to use pure Java fallback:
 
-1.  **Native JVM:** Leverages Termux's native `openjdk-21` package.
-2.  **Lean Artifacts:** Extracts only the application JAR from the official release, skipping the ~100MB bundled JRE and incompatible native binaries.
-3.  **Dynamic Wrapper:** Uses a smart shell wrapper to launch Junie via `java -jar`, ensuring resilience against version updates and path changes.
-
-**Benefits:** ~50% reduction in storage (340MB vs 700MB+), faster startup, and significantly lower battery consumption.
-
----
-
-## 🛠️ Prerequisites: Termux Setup
-
-Junie runs within the **Termux** environment. If you don't have it installed:
-
-1.  **Download:** Obtain Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/) (recommended for updates) or [GitHub](https://github.com/termux/termux-app).
-2.  **Permissions:** Run `termux-setup-storage` to allow Junie to access your project files if they are on shared storage.
-
----
-
-## ⚡ Installation
-
-### 1. Readiness Check
-Verify your environment is prepared for Junie:
 ```bash
-curl -fSL https://raw.githubusercontent.com/LexGridnev/junie-android/main/diagnostics.sh | bash
+JAR="$(ls -1 ~/.local/share/junie/lib/*.jar | head -1)"
+zip -d "$JAR" "org/fusesource/jansi/internal/native/Linux/arm64/libjansi.so" \
+             "org/jline/nativ/Linux/arm64/libjlinenative.so" || true
 ```
 
-### 2. Run Installer
-Once diagnostics pass, execute the optimized installer:
+## Recommended LLMs
+
+### 1. Google Gemini (Recommended)
+Google Gemini (1.5 Pro/Flash) is the #1 recommended LLM for use with Junie on Android. It offers excellent performance and low latency.
+To use Gemini, set your API key:
 ```bash
-pkg upgrade -y && pkg install curl -y && \
-curl -fSL https://raw.githubusercontent.com/LexGridnev/junie-android/main/install.sh | bash
+export GOOGLE_API_KEY="your_api_key_here"
 ```
 
-*Note: Access to the Junie service requires a [JetBrains AI subscription](https://www.jetbrains.com/ai/).*
+## Tasker Automation
+You can automate Junie tasks using the Termux:Tasker plugin.
 
----
-
-## 🧠 Supported AI Models
-
-Junie is model-agnostic and supports top-tier LLMs from multiple providers. You can specify a model using the `--model <ID>` flag.
-
-| Provider | Model Aliases |
-|---|---|
-| **Anthropic** | `sonnet` (Claude 3.5 Sonnet), `opus` |
-| **OpenAI** | `gpt` (GPT-4o/latest), `gpt-codex` |
-| **Google** | `gemini-pro`, `gemini-flash` |
-| **xAI** | `grok` |
-
-Refer to the [Official Model Selection Guide](https://junie.jetbrains.com/docs/junie-cli-model-selection.html) for detailed configuration.
-
----
-
-## 🚀 Quick Start
-
-After installation, you can interact with Junie using these common patterns:
-
-- **Interactive Mode:** `junie` (Start a conversation in your current directory)
-- **One-off Prompt:** `junie "Fix the typos in README.md"`
-- **Plan Mode:** `junie --plan "Refactor the authentication logic"`
-- **Specific Model:** `junie --model sonnet "Explain this code"`
-
----
-
-## 📜 Credits & Legal
-
-- **Research:** Built on the technical investigation of Lex Gridnev.
-- **Disclaimer:** This is a community-maintained installation script.
-- **Trademarks:** JetBrains and Junie are trademarks of JetBrains s.r.o.
-
----
-[Official Junie Documentation](https://junie.jetbrains.com/docs/) | [GitHub Repository](https://github.com/JetBrains/junie)
+### Example Tasker Integration
+1. Create a script `~/tasker/junie_review.sh`:
+```bash
+#!/bin/bash
+junie "Review the latest changes in this folder"
+```
+2. In Tasker, use the Termux:Tasker action to execute this script based on triggers (e.g., time, location, or file changes).

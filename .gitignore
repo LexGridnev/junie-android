@@ -1,0 +1,4 @@
+*.log
+temp_extract/
+.junie/
+*.bak
