@@ -1,5 +1,3 @@
-# Junie Android: The Ultimate AI Agent for Termux
-
 # Junie CLI for Android/Termux
 
 This guide focuses on running Junie CLI natively on Android via Termux.
